@@ -254,6 +254,12 @@ export const findAlerts = async () => {
 
 export const createNotification = async (data) => {
   console.log(data.camera);
+  console.log('This is the alert data');
+  console.log(data.message);
+  console.log('This is the alert label');
+  console.log(data.label);
+  console.log('This is the alert trigger');
+  console.log(data.trigger);
   const camera = await Database.interfaceDB.chain.get('cameras').find({ name: data.camera }).cloneDeep().value();
   const camerasSettings = await Database.interfaceDB.chain.get('settings').get('cameras').cloneDeep().value();
 

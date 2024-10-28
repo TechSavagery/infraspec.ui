@@ -11,7 +11,7 @@
       v-row.overflow-hidden
         v-col.tw-py-1(v-for="(notification,i) in notifications" :key="notification.id" cols="12")
           v-card.tw-p-2.tw-relative(elevation="1")
-            v-btn.notification-goto-button(to="/notifications" icon small)
+            v-btn.notification-goto-button(to="/alerts" icon small)
               v-icon {{ icons['mdiChevronRight'] }}
             .tw-flex.tw-justify-between.tw-items-center.notifications-card-title
               v-card-title.tw-text-sm.tw-p-0 {{ notification.title || notification.camera || $t('notification') }}
@@ -56,7 +56,7 @@ export default {
       this.notifications = this.notifications.map((not) => {
         if (!not.message) {
           if (not.camera && not.room) {
-            not.message = 'ghjghjg';
+            //not.message = 'ghjghjg';
           } else {
             not.message = this.$t('movement_detected');
           }

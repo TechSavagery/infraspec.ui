@@ -189,6 +189,7 @@ export default class MotionController {
           triggerType = triggerType === 'reset' ? 'motion' : triggerType;
           triggerType = triggerType.split('&')[0];
           console.log(`triggerType: ${triggerType}`);
+          //Add switch for all camera firmware alert types
 
           var filteredAlertData = [];
           var alertData = result.data.toString().match(/\(([^)]+)\)/g);
@@ -781,7 +782,7 @@ export default class MotionController {
 
   static async handleMotion(triggerType, cameraName, state, event, result = {}, message = {}) {
     // result = {} is used as http response
-    //this is wherer we do temp alarms
+    //this is where we do temp alarms
     let camera = ConfigService.ui.cameras.find(
       (camera) => camera?.name.toLowerCase().replace(/\s/g, '') === cameraName.toLowerCase().replace(/\s/g, '')
     );
