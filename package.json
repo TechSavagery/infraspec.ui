@@ -1,6 +1,6 @@
 {
   "name": "infraspec.ui",
-  "version": "1.192.0",
+  "version": "1.193.0",
   "description": "NVR-like user interface for RTSP capable cameras.",
   "author": "Tech Savagery (https://github.com/TechSavagery/infraspec.ui)",
   "main": "src/index.js",
