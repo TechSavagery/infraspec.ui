@@ -1003,37 +1003,6 @@ function processFile(filePath) {
   });
 }
 
-function parseTemperatureDataFromHeaders(userAgent) {
-  const data = {};
-  const matches = userAgent.match(/\(([^)]+)\)/g) || [];
-
-  matches.forEach((match) => {
-    const [key, value] = match.replace(/[()]/g, '').split('=');
-    if (key && value) {
-      data[key.trim()] = value.trim();
-    }
-  });
-
-  const maxTemp = parseFloat(data['MaxTemperature']);
-  const minTemp = parseFloat(data['MinTemperature']);
-  const warningValue = parseFloat(data['WarningValue']);
-  const tempThreshold = parseFloat(data['TemperatureThreshold']);
-  const deviceId = data['DeviceID'];
-
-  const type = maxTemp > tempThreshold ? 'ThermalAlert-Alarm' : 'ThermalAlert-Warning';
-
-  return {
-    TemperatureData: {
-      MaxTemperature: maxTemp,
-      MinTemperature: minTemp,
-      WarningValue: warningValue,
-      TemperatureThreshold: tempThreshold,
-    },
-    DeviceId: deviceId,
-    Type: type,
-  };
-}
-
 // Helper function to parse Temperature Data from body
 function parseTemperatureDataFromHeaders(userAgent) {
   const data = {};
