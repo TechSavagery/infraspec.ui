@@ -158,80 +158,119 @@ export default class MotionController {
         data: JSON.stringify(request.headers),
       };
 
-      //Entry Point for camera alerts
+      // Log the incoming request
       log.info(`New message: URL: ${request.url}`, 'HTTP');
-      let body = '';
-      request.on('data', async (chunk) => {
-        if (chunk) {
-          body += chunk.toString(); // convert Buffer to string
-          console.log(body);
-        }
-      });
-      console.log(JSON.stringify(request.headers));
-      console.log(request.body);
 
+      // Initialize variables
+      let body = '';
       let cameraName;
 
-      if (request.url) {
-        const parseurl = parse(request.url);
+      // Collect request body data
+      request.on('data', async (chunk) => {
+        body += chunk.toString(); // Convert Buffer to string
+      });
 
-        if (parseurl.pathname && parseurl.query) {
-          cameraName = decodeURIComponent(parseurl.query);
-          console.log(cameraName);
+      // After receiving the data, process the body content
+      request.on('end', async () => {
+        console.log(JSON.stringify(request.headers));
+        console.log(body);
 
-          // => /motion
-          // => /motion/reset
-          // => /doorbell
+        // Parse URL to determine the trigger type and camera name
+        if (request.url) {
+          const parseurl = parse(request.url, true);
+          if (parseurl.pathname && parseurl.query) {
+            cameraName = decodeURIComponent(parseurl.query);
+            console.log(cameraName);
+            let state = triggerType === 'dorbell' ? true : triggerType === 'reset' ? false : true;
 
-          let triggerType = parseurl.pathname.includes('/reset') ? 'reset' : parseurl.pathname.split('/')[1];
-
-          let state = triggerType === 'dorbell' ? true : triggerType === 'reset' ? false : true;
-          triggerType = triggerType === 'reset' ? 'motion' : triggerType;
-          triggerType = triggerType.split('&')[0];
-          console.log(`triggerType: ${triggerType}`);
-          //Add switch for all camera firmware alert types
-
-          var filteredAlertData = [];
-          var alertData = result.data.toString().match(/\(([^)]+)\)/g);
-
-          // eslint-disable-next-line unicorn/no-for-loop
-          if (alertData != null) {
-            for (const alertDatum of alertData) {
-              alertDatum.replace('(', '').replace(')', '');
-              switch (true) {
-                case alertDatum.includes('MaxTemperature='):
-                  filteredAlertData.push(alertDatum);
-                  break;
-                case alertDatum.includes('MinTemperature='):
-                  filteredAlertData.push(alertDatum);
-                  break;
-                case alertDatum.includes('WarningValue='):
-                  filteredAlertData.push(alertDatum);
-                  break;
-                case alertDatum.includes('TemperatureThreshold='):
-                  filteredAlertData.push(alertDatum);
-                  break;
-                default:
-              }
+            // Parse headers for temperature data if available
+            if (request.headers['user-agent'] && request.headers['user-agent'].includes('TemperatureThreshold')) {
+              result = parseTemperatureDataFromHeaders(request.headers['user-agent']);
+            } else {
+              result = parseAlarmDataFromBody(body);
             }
+
+            // Update result and send to handleMotion
+            result = await MotionController.handleMotion(result.Type, cameraName, state, 'http', result, result);
           }
-
-          console.log(filteredAlertData);
-
-          result = await MotionController.handleMotion(
-            triggerType,
-            cameraName,
-            state,
-            'http',
-            result,
-            filteredAlertData
-          );
         }
+
+        // Respond to the client
+        response.writeHead(result.error ? 500 : 200);
+        response.write(JSON.stringify(result));
+        response.end();
+      });
+      // Helper function to parse Temperature Data from body
+      function parseTemperatureDataFromHeaders(userAgent) {
+        const data = {};
+        const matches = userAgent.match(/\(([^)]+)\)/g) || [];
+
+        matches.forEach((match) => {
+          const [key, value] = match.replace(/[()]/g, '').split('=');
+          if (key && value) {
+            data[key.trim()] = value.trim();
+          }
+        });
+
+        const maxTemp = parseFloat(data['MaxTemperature']);
+        const minTemp = parseFloat(data['MinTemperature']);
+        const warningValue = parseFloat(data['WarningValue']);
+        const tempThreshold = parseFloat(data['TemperatureThreshold']);
+        const deviceId = data['DeviceID'];
+
+        const type = maxTemp > tempThreshold ? 'ThermalAlert-Alarm' : 'ThermalAlert-Warning';
+
+        return {
+          TemperatureData: {
+            MaxTemperature: maxTemp,
+            MinTemperature: minTemp,
+            WarningValue: warningValue,
+            TemperatureThreshold: tempThreshold,
+          },
+          DeviceId: deviceId,
+          Type: type,
+        };
       }
 
-      response.writeHead(result.error ? 500 : 200);
-      response.write(JSON.stringify(result));
-      response.end();
+      // Helper function to parse alarm data from the body
+      function parseAlarmDataFromBody(body) {
+        const data = {};
+        body.split('\n').forEach((line) => {
+          const [key, value] = line.split('=');
+          if (key && value) {
+            data[key.trim()] = value.trim();
+          }
+        });
+
+        const alarmTypeMapping = {
+          MajorAlarmType: {
+            1: 'Critical',
+            2: 'High',
+            3: 'Medium',
+            4: 'Low',
+          },
+          MinorAlarmType: {
+            5: 'Hardware Issue',
+            6: 'Software Issue',
+            7: 'Network Issue',
+            8: 'Environmental',
+          },
+        };
+
+        const deviceId = data['DeviceID'];
+        const majorAlarmType = parseInt(data['MajorAlarmType']);
+        const minorAlarmType = parseInt(data['MinorAlarmType']);
+
+        const majorAlarmTypeName = alarmTypeMapping.MajorAlarmType[majorAlarmType] || 'Unknown';
+        const minorAlarmTypeName = alarmTypeMapping.MinorAlarmType[minorAlarmType] || 'Unknown';
+
+        const type = `${majorAlarmTypeName} - ${minorAlarmTypeName}`;
+
+        return {
+          DeviceId: deviceId,
+          Type: type,
+        };
+      }
     });
 
     MotionController.httpServer.on('close', () => {

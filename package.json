@@ -1,8 +1,9 @@
 {
   "name": "infraspec.ui",
   "version": "1.190.0",
-  "description": "NVR like user interface for RTSP capable cameras.",
+  "description": "NVR-like user interface for RTSP capable cameras.",
   "author": "Tech Savagery (https://github.com/TechSavagery/infraspec.ui)",
+  "main": "src/index.js",
   "scripts": {
     "build": "npm run build --prefix ui",
     "lint": "concurrently \"npm run lint:server\" \"npm run lint:ui\"",
@@ -12,10 +13,12 @@
     "watch": "concurrently \"npm run watch:server\" \"npm run watch:ui\"",
     "watch:server": "nodemon",
     "watch:ui": "npm run serve --prefix ui",
-    "dev": "npm run build --prefix ui ; npm run watch",
-    "prepublishOnly": "npm i --package-lock-only && npm run lint && npm run build"
+    "dev": "npm run build --prefix ui && npm run watch",
+    "prepublishOnly": "npm i --package-lock-only && npm run lint && npm run build",
+    "start": "node main.js",
+    "electron-start": "electron .",
+    "build-electron": "electron-builder"
   },
-  "main": "src/index.js",
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.76.0",
     "@seydx/lowdb": "^3.0.2",
@@ -67,6 +70,8 @@
     "@babel/eslint-parser": "^7.17.0",
     "@babel/eslint-plugin": "^7.17.7",
     "concurrently": "6.5.1",
+    "electron": "^33.0.2",
+    "electron-builder": "^25.1.8",
     "eslint": "^8.14.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
@@ -119,5 +124,27 @@
     "type": "git",
     "url": "git+https://github.com/SeydX/camera.ui.git"
   },
-  "type": "module"
+  "type": "module",
+  "build": {
+    "appId": "com.techsavagery.infraspecui",
+    "productName": "InfraSpec UI",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "path/to/icon.ico"
+    },
+    "files": [
+      "**/*",
+      "!dist",
+      "!node_modules/.cache"
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
 }

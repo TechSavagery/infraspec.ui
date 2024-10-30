@@ -40,18 +40,15 @@
             template(v-slot:item.recordType="{ item }")
               .text-font-disabled {{ item.recordType }}
             template(v-slot:item.message="{ item }")
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.type != null") Type:{{item.type}}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.type === 'insulator' && item.insulator_condition != null") Insulator Condition:{{item.insulator_condition}}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.type === 'vehicle' && item.authorized != null") Authorized:{{item.authorized}}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.type === 'vehicle' && item.license != null") License:{{item.license}}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.type === 'person' && item.authorized != null") Authorized:{{item.authorized}}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.type === 'person' && item.missing_gear != null") Missing Gear:{{item.missing_gear}}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.type === 'person' && item.pose != null") Pose:{{item.pose}}
+              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.MaxTemperature != null") Max Temperature: {{ item.message.TemperatureData.MaxTemperature }}
+              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.MinTemperature != null") Min Temperature: {{ item.message.TemperatureData.MinTemperature }}
+              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.WarningValue != null") Warning Value: {{ item.message.TemperatureData.WarningValue }}
+              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.TemperatureThreshold != null") Temperature Threshold: {{ item.message.TemperatureData.TemperatureThreshold }}
             template(v-slot:item.time="{ item }")
               .text-font-disabled {{ item.time }}
-            template(v-slot:item.label="{ item }")
-              v-chip(color="var(--cui-primary)" dark small) {{ item.label.includes("no label") ? $t("no_label") : item.label.includes("Custom") ? $t("custom") : item.label }}
-            template(v-slot:item.download="{ item }")
+              template(v-slot:item.label="{ item }")
+                v-chip(:color="item.label.includes('Warning') ? 'yellow' : item.label.includes('Alarm') ? 'red' : 'var(--cui-primary)'" dark small)
+                  {{ item.label.includes("no label") ? $t("no_label") : item.label.includes("Custom") ? $t("custom") : item.label }}            template(v-slot:item.download="{ item }")
               v-btn.tw-text-white(fab x-small color="#434343" elevation="1" @click="download(item)")
                 v-icon {{ icons['mdiDownload'] }}
 
@@ -360,20 +357,13 @@ export default {
           });
 
           this.recordings = this.recordings.map((recording) => {
-            if (recording.message != null) {
-              var jsonAlertDataRaw = recording.message;
-              var jsonAlertDataFormatted = JSON.parse(jsonAlertDataRaw.replace(/\\/g, ''));
+            if (recording.message != null && recording.message.TemperatureData != null) {
+              var jsonAlertDataFormatted = recording.message.TemperatureData;
               console.log(jsonAlertDataFormatted);
-              recording.confidence = jsonAlertDataFormatted.confidence;
-              recording.type = jsonAlertDataFormatted.type;
-              recording.location = `${jsonAlertDataFormatted.location[0]},${jsonAlertDataFormatted.location[1]} `;
-              recording.orientation = `${jsonAlertDataFormatted.orientation[0]},${jsonAlertDataFormatted.orientation[1]} `;
-              recording.speed = jsonAlertDataFormatted.speed;
-              recording.authorized = jsonAlertDataFormatted.info.authorized;
-              recording.license = jsonAlertDataFormatted.info.license;
-              recording.missing_gear = jsonAlertDataFormatted.info.missing_gear;
-              recording.pose = jsonAlertDataFormatted.info.pose;
-              recording.insulator_condition = jsonAlertDataFormatted.info.insulator_condition;
+              recording.MaxTemperature = jsonAlertDataFormatted.MaxTemperature;
+              recording.MinTemperature = jsonAlertDataFormatted.MinTemperature;
+              recording.WarningValue = jsonAlertDataFormatted.WarningValue;
+              recording.TemperatureThreshold = jsonAlertDataFormatted.TemperatureThreshold;
               console.log(recording);
             }
 
