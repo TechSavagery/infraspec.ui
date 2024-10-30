@@ -180,6 +180,7 @@ export default class MotionController {
           const parseurl = parse(request.url, true);
           if (parseurl.pathname && parseurl.query) {
             cameraName = decodeURIComponent(parseurl.query);
+            let triggerType = '';
             console.log(cameraName);
             let state = triggerType === 'dorbell' ? true : triggerType === 'reset' ? false : true;
 
@@ -200,77 +201,6 @@ export default class MotionController {
         response.write(JSON.stringify(result));
         response.end();
       });
-      // Helper function to parse Temperature Data from body
-      function parseTemperatureDataFromHeaders(userAgent) {
-        const data = {};
-        const matches = userAgent.match(/\(([^)]+)\)/g) || [];
-
-        matches.forEach((match) => {
-          const [key, value] = match.replace(/[()]/g, '').split('=');
-          if (key && value) {
-            data[key.trim()] = value.trim();
-          }
-        });
-
-        const maxTemp = parseFloat(data['MaxTemperature']);
-        const minTemp = parseFloat(data['MinTemperature']);
-        const warningValue = parseFloat(data['WarningValue']);
-        const tempThreshold = parseFloat(data['TemperatureThreshold']);
-        const deviceId = data['DeviceID'];
-
-        const type = maxTemp > tempThreshold ? 'ThermalAlert-Alarm' : 'ThermalAlert-Warning';
-
-        return {
-          TemperatureData: {
-            MaxTemperature: maxTemp,
-            MinTemperature: minTemp,
-            WarningValue: warningValue,
-            TemperatureThreshold: tempThreshold,
-          },
-          DeviceId: deviceId,
-          Type: type,
-        };
-      }
-
-      // Helper function to parse alarm data from the body
-      function parseAlarmDataFromBody(body) {
-        const data = {};
-        body.split('\n').forEach((line) => {
-          const [key, value] = line.split('=');
-          if (key && value) {
-            data[key.trim()] = value.trim();
-          }
-        });
-
-        const alarmTypeMapping = {
-          MajorAlarmType: {
-            1: 'Critical',
-            2: 'High',
-            3: 'Medium',
-            4: 'Low',
-          },
-          MinorAlarmType: {
-            5: 'Hardware Issue',
-            6: 'Software Issue',
-            7: 'Network Issue',
-            8: 'Environmental',
-          },
-        };
-
-        const deviceId = data['DeviceID'];
-        const majorAlarmType = parseInt(data['MajorAlarmType']);
-        const minorAlarmType = parseInt(data['MinorAlarmType']);
-
-        const majorAlarmTypeName = alarmTypeMapping.MajorAlarmType[majorAlarmType] || 'Unknown';
-        const minorAlarmTypeName = alarmTypeMapping.MinorAlarmType[minorAlarmType] || 'Unknown';
-
-        const type = `${majorAlarmTypeName} - ${minorAlarmTypeName}`;
-
-        return {
-          DeviceId: deviceId,
-          Type: type,
-        };
-      }
     });
 
     MotionController.httpServer.on('close', () => {
@@ -1071,4 +1001,107 @@ function processFile(filePath) {
       //cameraui stores as Camera_Name-UniqueId-UNIXTimeStamp_recordingType_CUI.fileext Mile_Thermal-d020aa264b-1682541074_c_CUI_Test.mp4
     });
   });
+}
+
+function parseTemperatureDataFromHeaders(userAgent) {
+  const data = {};
+  const matches = userAgent.match(/\(([^)]+)\)/g) || [];
+
+  matches.forEach((match) => {
+    const [key, value] = match.replace(/[()]/g, '').split('=');
+    if (key && value) {
+      data[key.trim()] = value.trim();
+    }
+  });
+
+  const maxTemp = parseFloat(data['MaxTemperature']);
+  const minTemp = parseFloat(data['MinTemperature']);
+  const warningValue = parseFloat(data['WarningValue']);
+  const tempThreshold = parseFloat(data['TemperatureThreshold']);
+  const deviceId = data['DeviceID'];
+
+  const type = maxTemp > tempThreshold ? 'ThermalAlert-Alarm' : 'ThermalAlert-Warning';
+
+  return {
+    TemperatureData: {
+      MaxTemperature: maxTemp,
+      MinTemperature: minTemp,
+      WarningValue: warningValue,
+      TemperatureThreshold: tempThreshold,
+    },
+    DeviceId: deviceId,
+    Type: type,
+  };
+}
+
+// Helper function to parse Temperature Data from body
+function parseTemperatureDataFromHeaders(userAgent) {
+  const data = {};
+  const matches = userAgent.match(/\(([^)]+)\)/g) || [];
+
+  matches.forEach((match) => {
+    const [key, value] = match.replace(/[()]/g, '').split('=');
+    if (key && value) {
+      data[key.trim()] = value.trim();
+    }
+  });
+
+  const maxTemp = parseFloat(data['MaxTemperature']);
+  const minTemp = parseFloat(data['MinTemperature']);
+  const warningValue = parseFloat(data['WarningValue']);
+  const tempThreshold = parseFloat(data['TemperatureThreshold']);
+  const deviceId = data['DeviceID'];
+
+  const type = maxTemp > tempThreshold ? 'ThermalAlert-Alarm' : 'ThermalAlert-Warning';
+
+  return {
+    TemperatureData: {
+      MaxTemperature: maxTemp,
+      MinTemperature: minTemp,
+      WarningValue: warningValue,
+      TemperatureThreshold: tempThreshold,
+    },
+    DeviceId: deviceId,
+    Type: type,
+  };
+}
+
+// Helper function to parse alarm data from the body
+function parseAlarmDataFromBody(body) {
+  const data = {};
+  body.split('\n').forEach((line) => {
+    const [key, value] = line.split('=');
+    if (key && value) {
+      data[key.trim()] = value.trim();
+    }
+  });
+
+  const alarmTypeMapping = {
+    MajorAlarmType: {
+      1: 'Critical',
+      2: 'High',
+      3: 'Medium',
+      4: 'Low',
+    },
+    MinorAlarmType: {
+      5: 'Hardware Issue',
+      6: 'Software Issue',
+      7: 'Network Issue',
+      8: 'Environmental',
+    },
+  };
+
+  const deviceId = data['DeviceID'];
+  const majorAlarmType = parseInt(data['MajorAlarmType']);
+  const minorAlarmType = parseInt(data['MinorAlarmType']);
+
+  const majorAlarmTypeName = alarmTypeMapping.MajorAlarmType[majorAlarmType] || 'Unknown';
+  const minorAlarmTypeName = alarmTypeMapping.MinorAlarmType[minorAlarmType] || 'Unknown';
+
+  const type = `${majorAlarmTypeName} - ${minorAlarmTypeName}`;
+
+  return {
+    DeviceId: deviceId,
+    Type: type,
+  };
 }
