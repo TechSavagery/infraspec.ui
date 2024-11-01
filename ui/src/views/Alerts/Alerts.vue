@@ -49,20 +49,20 @@
               v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.TemperatureData?.TemperatureThreshold != null") 
                 Temperature Threshold: {{ item.message.TemperatureData.TemperatureThreshold }}
 
-              template(v-slot:item.time="{ item }")
-                .text-font-disabled {{ item.time }}
+            template(v-slot:item.time="{ item }")
+              .text-font-disabled {{ item.time }}
 
-              template(v-slot:item.label="{ item }")
-                v-chip(
-                  :color="item.label.includes('Warning') ? 'yellow' : item.label.includes('Alarm') ? 'red' : 'var(--cui-primary)'"
-                  dark 
-                  small
-                  v-text="item.label.includes('no label') ? $t('no_label') : item.label.includes('Custom') ? $t('custom') : item.label"
-                )
+            template(v-slot:item.label="{ item }")
+              v-chip(
+                :color="item.label.includes('Warning') ? 'yellow' : item.label.includes('Alarm') ? 'red' : 'var(--cui-primary)'"
+                dark 
+                small
+                v-text="item.label.includes('no label') ? $t('no_label') : item.label.includes('Custom') ? $t('custom') : item.label"
+              )
 
-              template(v-slot:item.download="{ item }")
-                v-btn.tw-text-white(fab x-small color="#434343" elevation="1" @click="download(item)")
-                  v-icon {{ icons['mdiDownload'] }}
+            template(v-slot:item.download="{ item }")
+              v-btn.tw-text-white(fab x-small color="#434343" elevation="1" @click="download(item)")
+                v-icon {{ icons['mdiDownload'] }}
 
         infinite-loading(:identifier="infiniteId" @infinite="infiniteHandler")
           .tw-mt-10(slot="spinner")
