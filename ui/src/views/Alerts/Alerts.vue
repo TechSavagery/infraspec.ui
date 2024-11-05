@@ -39,26 +39,6 @@
               b {{ item.camera }}
             template(v-slot:item.recordType="{ item }")
               .text-font-disabled {{ item.recordType }}
-            template(v-slot:item.message="{ item }")
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.TemperatureData?.MaxTemperature != null") 
-                Max Temperature: {{ item.message.TemperatureData.MaxTemperature }}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.TemperatureData?.MinTemperature != null") 
-                Min Temperature: {{ item.message.TemperatureData.MinTemperature }}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.TemperatureData?.WarningValue != null") 
-                Warning Value: {{ item.message.TemperatureData.WarningValue }}
-              v-chip(color="var(--cui-primary)" outlined rounded small v-if="item.message?.TemperatureData?.TemperatureThreshold != null") 
-                Temperature Threshold: {{ item.message.TemperatureData.TemperatureThreshold }}
-
-            template(v-slot:item.time="{ item }")
-              .text-font-disabled {{ item.time }}
-
-            template(v-slot:item.label="{ item }")
-              v-chip(
-                :color="item.label.includes('Warning') ? 'yellow' : item.label.includes('Alarm') ? 'red' : 'var(--cui-primary)'"
-                dark 
-                small
-                v-text="item.label.includes('no label') ? $t('no_label') : item.label.includes('Custom') ? $t('custom') : item.label"
-              )
 
             template(v-slot:item.download="{ item }")
               v-btn.tw-text-white(fab x-small color="#434343" elevation="1" @click="download(item)")
